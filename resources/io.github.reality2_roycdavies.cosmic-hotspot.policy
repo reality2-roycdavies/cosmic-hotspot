@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+  "-//freedesktop//DTD polkit Policy Configuration 1.0//EN"
+  "https://www.freedesktop.org/standards/polkit/1.0/policyconfig.dtd">
+<policyconfig>
+  <vendor>cosmic-hotspot</vendor>
+  <vendor_url>https://github.com/reality2-roycdavies/cosmic-hotspot</vendor_url>
+
+  <action id="io.github.reality2_roycdavies.cosmic-hotspot.nat">
+    <description>Set up NAT rules for WiFi hotspot</description>
+    <message>Authentication is required to configure network address translation for the WiFi hotspot.</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/local/bin/cosmic-hotspot-nat</annotate>
+    <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
+  </action>
+</policyconfig>

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=WiFi Hotspot
+Comment=WiFi Hotspot toggle for COSMIC desktop
+Exec=cosmic-hotspot
+Icon=io.github.reality2_roycdavies.cosmic-hotspot
+Terminal=false
+Type=Application
+Categories=Settings;Network;
+OnlyShowIn=COSMIC;
+NoDisplay=true
+X-CosmicApplet=true
