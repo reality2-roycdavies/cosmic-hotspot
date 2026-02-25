@@ -167,10 +167,16 @@ impl cosmic::Application for HotspotApplet {
 
             Message::OpenSettings => {
                 std::thread::spawn(|| {
-                    let exe = std::env::current_exe()
-                        .unwrap_or_else(|_| "cosmic-hotspot".into());
-                    if let Err(e) = std::process::Command::new(exe).arg("--settings").spawn() {
-                        eprintln!("Failed to launch settings: {e}");
+                    // Try the unified settings app first, fall back to standalone
+                    let result = std::process::Command::new("cosmic-applet-settings")
+                        .arg("hotspot")
+                        .spawn();
+                    if result.is_err() {
+                        let exe = std::env::current_exe()
+                            .unwrap_or_else(|_| "cosmic-hotspot".into());
+                        if let Err(e) = std::process::Command::new(exe).arg("--settings").spawn() {
+                            eprintln!("Failed to launch settings: {e}");
+                        }
                     }
                 });
             }
