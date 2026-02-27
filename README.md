@@ -14,6 +14,14 @@ A WiFi hotspot toggle applet for the [COSMIC desktop environment](https://system
 - **NAT Support**: Optional polkit policy for passwordless NAT configuration
 - **Settings Page**: Configurable via the unified COSMIC applet settings app
 
+## Requirements
+
+**Two WiFi interfaces are required** to run a hotspot while staying connected to the internet. This typically means:
+- A built-in WiFi card **plus** a USB WiFi dongle, or
+- Two internal WiFi cards
+
+One interface maintains your internet connection while the other broadcasts the hotspot.
+
 ## Installation
 
 ### Prerequisites
