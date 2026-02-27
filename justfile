@@ -58,6 +58,10 @@ install-local:
     cp resources/{{appid}}-active-symbolic.svg ~/.local/share/icons/hicolor/symbolic/apps/
     cp resources/{{appid}}-inactive-symbolic.svg ~/.local/share/icons/hicolor/symbolic/apps/
 
+    # Install applet registration for cosmic-applet-settings
+    mkdir -p ~/.local/share/cosmic-applet-settings/applets
+    cp resources/applet-settings.json ~/.local/share/cosmic-applet-settings/applets/{{name}}.json
+
     echo "Installation complete!"
     echo "Add the applet to your COSMIC panel to use it."
 
@@ -81,6 +85,7 @@ uninstall-local:
     rm -f ~/.local/share/icons/hicolor/symbolic/apps/{{appid}}-symbolic.svg
     rm -f ~/.local/share/icons/hicolor/symbolic/apps/{{appid}}-active-symbolic.svg
     rm -f ~/.local/share/icons/hicolor/symbolic/apps/{{appid}}-inactive-symbolic.svg
+    rm -f ~/.local/share/cosmic-applet-settings/applets/{{name}}.json
 
 # Build and run
 br: build-debug run

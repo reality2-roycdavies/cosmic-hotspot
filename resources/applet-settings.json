@@ -1,0 +1,6 @@
+{
+    "name": "WiFi Hotspot",
+    "icon": "io.github.reality2_roycdavies.cosmic-hotspot-symbolic",
+    "applet_id": "io.github.reality2_roycdavies.cosmic-hotspot",
+    "settings_cmd": "cosmic-hotspot --settings-standalone"
+}
