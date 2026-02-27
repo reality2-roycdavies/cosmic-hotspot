@@ -1,30 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#3d4f7c;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#252a3d;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-
-  <!-- Outer rounded square -->
-  <rect x="8" y="8" width="240" height="240" rx="48" ry="48" fill="url(#bgGradient)"/>
-
-  <!-- WiFi waves (hotspot broadcast) -->
-  <path d="M 80 140 Q 128 80 176 140" fill="none" stroke="#48a999" stroke-width="8" stroke-linecap="round" opacity="0.4"/>
-  <path d="M 96 140 Q 128 96 160 140" fill="none" stroke="#48a999" stroke-width="8" stroke-linecap="round" opacity="0.6"/>
-  <path d="M 112 140 Q 128 112 144 140" fill="none" stroke="#48a999" stroke-width="8" stroke-linecap="round" opacity="0.8"/>
-
-  <!-- Central dot (access point) -->
-  <circle cx="128" cy="148" r="10" fill="#48a999"/>
-
-  <!-- Bottom bar -->
-  <rect x="32" y="188" width="192" height="44" rx="12" ry="12" fill="#2d3548"/>
-
-  <!-- Status indicator -->
-  <circle cx="196" cy="210" r="8" fill="#48a999"/>
-
-  <!-- Text placeholder lines -->
-  <rect x="48" y="203" width="50" height="4" rx="2" fill="#6b7894"/>
-  <rect x="48" y="213" width="80" height="4" rx="2" fill="#4a5568"/>
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- WiFi Hotspot desktop icon: waves + dot matching symbolic -->
+  <rect width="64" height="64" rx="12" fill="#2B2B2B"/>
+  <!-- Outer wave -->
+  <path d="M 12 36 Q 32 12 52 36" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <!-- Middle wave -->
+  <path d="M 20 36 Q 32 20 44 36" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <!-- Inner wave -->
+  <path d="M 28 36 Q 32 28 36 36" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <!-- Access point dot -->
+  <circle cx="32" cy="44" r="5" fill="white"/>
 </svg>
