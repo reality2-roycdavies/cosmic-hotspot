@@ -15,11 +15,11 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            hotspot_interface: "wlp104s0f0u1u1".to_string(),
-            internet_interface: "wlp99s0".to_string(),
-            connection_name: "MyHotspot".to_string(),
-            ssid: "The_Metaverse".to_string(),
-            password: "6ddf9f9ce4".to_string(),
+            hotspot_interface: "wlan0".to_string(),
+            internet_interface: "wlan1".to_string(),
+            connection_name: "CosmicHotspot".to_string(),
+            ssid: "CosmicHotspot".to_string(),
+            password: "changeme123".to_string(),
             band: "bg".to_string(),
             gateway_ip: "192.168.44.1/24".to_string(),
         }
