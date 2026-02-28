@@ -22,6 +22,11 @@ A WiFi hotspot toggle applet for the [COSMIC desktop environment](https://system
 
 One interface maintains your internet connection while the other broadcasts the hotspot.
 
+## Screenshots
+
+![WiFi Hotspot settings in cosmic-applet-settings hub](screenshots/settings-inline.png)
+*WiFi Hotspot settings in the cosmic-applet-settings hub*
+
 ## Installation
 
 ### Prerequisites
