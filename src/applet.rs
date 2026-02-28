@@ -1,4 +1,5 @@
 use cosmic::app::{Core, Task};
+use cosmic::iced::widget::svg;
 use cosmic::iced::window::Id;
 use cosmic::iced::{Length, Rectangle};
 use cosmic::iced_runtime::core::window;
@@ -28,11 +29,15 @@ enum HotspotEvent {
 #[derive(Debug, Clone)]
 pub enum Message {
     PollStatus,
+    AnimationTick,
     ToggleHotspot,
     OpenSettings,
     PopupClosed(Id),
     Surface(cosmic::surface::Action),
 }
+
+/// Number of animation frames in one ripple cycle.
+const ANIM_FRAMES: u8 = 12;
 
 pub struct HotspotApplet {
     core: Core,
@@ -46,6 +51,7 @@ pub struct HotspotApplet {
     config: Config,
     cmd_tx: std::sync::mpsc::Sender<HotspotCommand>,
     event_rx: std::sync::mpsc::Receiver<HotspotEvent>,
+    anim_frame: u8,
 }
 
 impl cosmic::Application for HotspotApplet {
@@ -93,6 +99,7 @@ impl cosmic::Application for HotspotApplet {
             config,
             cmd_tx,
             event_rx,
+            anim_frame: 0,
         };
 
         (applet, Task::none())
@@ -104,6 +111,12 @@ impl cosmic::Application for HotspotApplet {
 
     fn update(&mut self, message: Self::Message) -> Task<Self::Message> {
         match message {
+            Message::AnimationTick => {
+                if self.hotspot_active {
+                    self.anim_frame = (self.anim_frame + 1) % ANIM_FRAMES;
+                }
+            }
+
             Message::PollStatus => {
                 while let Ok(event) = self.event_rx.try_recv() {
                     match event {
@@ -189,20 +202,38 @@ impl cosmic::Application for HotspotApplet {
     }
 
     fn subscription(&self) -> cosmic::iced::Subscription<Self::Message> {
-        cosmic::iced::time::every(std::time::Duration::from_secs(2))
-            .map(|_| Message::PollStatus)
+        let poll = cosmic::iced::time::every(std::time::Duration::from_secs(2))
+            .map(|_| Message::PollStatus);
+
+        if self.hotspot_active {
+            // ~8 FPS ripple animation when active
+            let anim = cosmic::iced::time::every(std::time::Duration::from_millis(125))
+                .map(|_| Message::AnimationTick);
+            cosmic::iced::Subscription::batch(vec![poll, anim])
+        } else {
+            poll
+        }
     }
 
     fn view(&self) -> Element<'_, Message> {
-        let icon_name = if self.hotspot_active {
-            "io.github.reality2_roycdavies.cosmic-hotspot-active-symbolic"
-        } else {
-            "io.github.reality2_roycdavies.cosmic-hotspot-inactive-symbolic"
-        };
+        let suggested = self.core.applet.suggested_size(true);
+        let icon_size = suggested.0 as f32;
 
-        let icon: Element<Message> = widget::icon::from_name(icon_name)
+        let icon: Element<Message> = if self.hotspot_active {
+            // Animated pulsating rings
+            let svg_data = ripple_svg(self.anim_frame);
+            let handle = svg::Handle::from_memory(svg_data.into_bytes());
+            cosmic::iced::widget::svg(handle)
+                .width(Length::Fixed(icon_size))
+                .height(Length::Fixed(icon_size))
+                .into()
+        } else {
+            widget::icon::from_name(
+                "io.github.reality2_roycdavies.cosmic-hotspot-inactive-symbolic",
+            )
             .symbolic(true)
-            .into();
+            .into()
+        };
 
         let have_popup = self.popup;
         let btn = self
@@ -403,6 +434,27 @@ async fn run_background(
 
         tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
     }
+}
+
+/// Generate an SVG string showing pulsating concentric rings.
+/// Three rings ripple outward, each offset by 1/3 of the cycle.
+fn ripple_svg(frame: u8) -> String {
+    let mut rings = String::new();
+    for phase in 0..3u8 {
+        // Each ring is offset by 4 frames (1/3 of 12-frame cycle)
+        let t = ((frame + phase * (ANIM_FRAMES / 3)) % ANIM_FRAMES) as f32
+            / ANIM_FRAMES as f32;
+        let r = 1.5 + t * 6.0; // radius: 1.5 → 7.5
+        let opacity = 1.0 - t; // fades as it expands
+        rings.push_str(&format!(
+            r#"<circle cx="8" cy="8" r="{r:.1}" fill="none" stroke="currentColor" stroke-width="1.2" opacity="{opacity:.2}"/>"#,
+        ));
+    }
+    // Center dot
+    rings.push_str(r#"<circle cx="8" cy="8" r="1.2" fill="currentColor"/>"#);
+    format!(
+        r#"<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">{rings}</svg>"#
+    )
 }
 
 pub fn run_applet() -> cosmic::iced::Result {
