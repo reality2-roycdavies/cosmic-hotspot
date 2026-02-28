@@ -2,6 +2,7 @@ mod applet;
 mod config;
 mod hotspot;
 mod settings;
+mod settings_cli;
 mod settings_page;
 
 const APPLET_ID: &str = "io.github.reality2_roycdavies.cosmic-hotspot";
@@ -19,6 +20,26 @@ fn main() -> cosmic::iced::Result {
             }
             "--version" | "-v" => {
                 println!("cosmic-hotspot {}", env!("CARGO_PKG_VERSION"));
+                Ok(())
+            }
+            "--settings-describe" => {
+                settings_cli::describe();
+                Ok(())
+            }
+            "--settings-set" => {
+                if args.len() < 4 {
+                    eprintln!("Usage: cosmic-hotspot --settings-set <key> <json_value>");
+                    std::process::exit(1);
+                }
+                settings_cli::set(&args[2], &args[3]);
+                Ok(())
+            }
+            "--settings-action" => {
+                if args.len() < 3 {
+                    eprintln!("Usage: cosmic-hotspot --settings-action <action_id>");
+                    std::process::exit(1);
+                }
+                settings_cli::action(&args[2]);
                 Ok(())
             }
             _ => {
