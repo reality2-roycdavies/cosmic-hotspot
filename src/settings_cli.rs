@@ -91,7 +91,6 @@ pub fn describe() {
             }
         ],
         "actions": [
-            {"id": "save", "label": "Save", "style": "suggested"},
             {"id": "reset", "label": "Reset to Defaults", "style": "destructive"},
             {"id": "refresh_interfaces", "label": "Refresh Interfaces", "style": "standard"}
         ]
@@ -123,7 +122,18 @@ pub fn set(key: &str, value: &str) {
 
     match result {
         Ok(msg) => match config.save() {
-            Ok(()) => print_response(true, msg),
+            Ok(()) => {
+                // Restart the hotspot if active so changes take effect immediately
+                if hotspot::is_hotspot_active(&config) {
+                    let _ = hotspot::stop_hotspot(&config);
+                    match hotspot::start_hotspot(&config) {
+                        Ok(_) => print_response(true, msg),
+                        Err(e) => print_response(false, &format!("{msg} (restart failed: {e})")),
+                    }
+                } else {
+                    print_response(true, msg);
+                }
+            }
             Err(e) => print_response(false, &format!("Save failed: {e}")),
         },
         Err(e) => print_response(false, &e),
@@ -133,7 +143,7 @@ pub fn set(key: &str, value: &str) {
 pub fn action(id: &str) {
     match id {
         "save" => {
-            // Config is already saved on each set; this is a no-op confirmation
+            // Each --settings-set already saves and restarts; this is kept for compat
             print_response(true, "Configuration saved");
         }
         "reset" => {

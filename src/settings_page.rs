@@ -107,7 +107,19 @@ pub fn update(state: &mut State, message: Message) {
         }
         Message::Save => {
             match state.config.save() {
-                Ok(()) => state.status_message = "Settings saved".to_string(),
+                Ok(()) => {
+                    // Restart the hotspot if it's currently active so that
+                    // new settings (SSID, password, etc.) take effect immediately.
+                    if hotspot::is_hotspot_active(&state.config) {
+                        let _ = hotspot::stop_hotspot(&state.config);
+                        match hotspot::start_hotspot(&state.config) {
+                            Ok(msg) => state.status_message = format!("Saved & applied: {msg}"),
+                            Err(e) => state.status_message = format!("Saved but restart failed: {e}"),
+                        }
+                    } else {
+                        state.status_message = "Settings saved".to_string();
+                    }
+                }
                 Err(e) => state.status_message = format!("Error: {e}"),
             }
         }
