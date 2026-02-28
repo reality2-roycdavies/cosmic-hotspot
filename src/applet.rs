@@ -36,8 +36,8 @@ pub enum Message {
     Surface(cosmic::surface::Action),
 }
 
-/// Number of animation frames in one ripple cycle.
-const ANIM_FRAMES: u8 = 12;
+/// Animation: dot → 1 ring → 2 rings → 3 rings → 2 rings → 1 ring → dot → repeat
+const ANIM_FRAMES: u8 = 7;
 
 pub struct HotspotApplet {
     core: Core,
@@ -206,8 +206,8 @@ impl cosmic::Application for HotspotApplet {
             .map(|_| Message::PollStatus);
 
         if self.hotspot_active {
-            // ~8 FPS ripple animation when active
-            let anim = cosmic::iced::time::every(std::time::Duration::from_millis(125))
+            // Slow pulse: one frame every 400ms → ~2.8s full cycle
+            let anim = cosmic::iced::time::every(std::time::Duration::from_millis(400))
                 .map(|_| Message::AnimationTick);
             cosmic::iced::Subscription::batch(vec![poll, anim])
         } else {
@@ -220,8 +220,18 @@ impl cosmic::Application for HotspotApplet {
         let icon_size = suggested.0 as f32;
 
         let icon: Element<Message> = if self.hotspot_active {
-            // Animated pulsating rings
-            let svg_data = ripple_svg(self.anim_frame);
+            // Get the theme foreground color so the SVG matches other panel icons
+            let theme = cosmic::theme::active();
+            let cosmic_theme = theme.cosmic();
+            let fg = cosmic_theme.background.on;
+            let color = format!(
+                "rgb({},{},{})",
+                (fg.red * 255.0) as u8,
+                (fg.green * 255.0) as u8,
+                (fg.blue * 255.0) as u8,
+            );
+
+            let svg_data = ripple_svg(self.anim_frame, &color);
             let handle = svg::Handle::from_memory(svg_data.into_bytes());
             cosmic::iced::widget::svg(handle)
                 .width(Length::Fixed(icon_size))
@@ -436,24 +446,40 @@ async fn run_background(
     }
 }
 
-/// Generate an SVG string showing pulsating concentric rings.
-/// Three rings ripple outward, each offset by 1/3 of the cycle.
-fn ripple_svg(frame: u8) -> String {
-    let mut rings = String::new();
-    for phase in 0..3u8 {
-        // Each ring is offset by 4 frames (1/3 of 12-frame cycle)
-        let t = ((frame + phase * (ANIM_FRAMES / 3)) % ANIM_FRAMES) as f32
-            / ANIM_FRAMES as f32;
-        let r = 1.5 + t * 6.0; // radius: 1.5 → 7.5
-        let opacity = 1.0 - t; // fades as it expands
-        rings.push_str(&format!(
-            r#"<circle cx="8" cy="8" r="{r:.1}" fill="none" stroke="currentColor" stroke-width="1.2" opacity="{opacity:.2}"/>"#,
+/// Generate an SVG showing concentric rings that grow then shrink.
+///
+/// Frame 0: dot only
+/// Frame 1: dot + inner ring
+/// Frame 2: dot + inner + middle ring
+/// Frame 3: dot + inner + middle + outer ring
+/// Frame 4: dot + inner + middle ring
+/// Frame 5: dot + inner ring
+/// Frame 6: dot only
+fn ripple_svg(frame: u8, color: &str) -> String {
+    // How many rings to show (0..=3) based on frame
+    let ring_count = match frame {
+        0 | 6 => 0,
+        1 | 5 => 1,
+        2 | 4 => 2,
+        3 => 3,
+        _ => 0,
+    };
+
+    let mut elements = String::new();
+    let radii = [3.0_f32, 5.0, 7.0];
+    for i in 0..ring_count {
+        let r = radii[i];
+        elements.push_str(&format!(
+            r#"<circle cx="8" cy="8" r="{r}" fill="none" stroke="{color}" stroke-width="1.2"/>"#,
         ));
     }
-    // Center dot
-    rings.push_str(r#"<circle cx="8" cy="8" r="1.2" fill="currentColor"/>"#);
+    // Center dot always visible
+    elements.push_str(&format!(
+        r#"<circle cx="8" cy="8" r="1.5" fill="{color}"/>"#,
+    ));
+
     format!(
-        r#"<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">{rings}</svg>"#
+        r#"<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">{elements}</svg>"#
     )
 }
 
