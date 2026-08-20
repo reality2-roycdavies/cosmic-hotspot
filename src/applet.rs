@@ -2,7 +2,7 @@ use cosmic::app::{Core, Task};
 use cosmic::iced::widget::svg;
 use cosmic::iced::window::Id;
 use cosmic::iced::{Length, Rectangle};
-use cosmic::iced_runtime::core::window;
+use cosmic::iced::window;
 use cosmic::surface::action::{app_popup, destroy_popup};
 use cosmic::widget::{self, text};
 use cosmic::Element;
@@ -223,7 +223,7 @@ impl cosmic::Application for HotspotApplet {
             // Get the theme foreground color so the SVG matches other panel icons
             let theme = cosmic::theme::active();
             let cosmic_theme = theme.cosmic();
-            let fg = cosmic_theme.background.on;
+            let fg = cosmic_theme.on_bg_color();
             let color = format!(
                 "rgb({},{},{})",
                 (fg.red * 255.0) as u8,
@@ -255,6 +255,8 @@ impl cosmic::Application for HotspotApplet {
                     Message::Surface(destroy_popup(id))
                 } else {
                     Message::Surface(app_popup::<HotspotApplet>(
+                        // live_settings: no live overrides needed
+                        |_| Default::default(),
                         move |state: &mut HotspotApplet| {
                             let new_id = Id::unique();
                             state.popup = Some(new_id);
@@ -306,34 +308,37 @@ impl cosmic::Application for HotspotApplet {
         "".into()
     }
 
-    fn style(&self) -> Option<cosmic::iced_runtime::Appearance> {
+    fn style(&self) -> Option<cosmic::iced::theme::Style> {
         Some(cosmic::applet::style())
     }
 }
 
 impl HotspotApplet {
-    fn popup_content(&self) -> widget::Column<'_, Message> {
-        use cosmic::iced::widget::{column, container, horizontal_space, row, Space};
+    fn popup_content(&self) -> Element<'_, Message> {
         use cosmic::iced::{Alignment, Color};
+        use cosmic::widget::{container, Column, Row, Space};
 
-        let title_row = row![
-            text::body("WiFi Hotspot"),
-            horizontal_space(),
-        ]
-        .spacing(8)
-        .align_y(Alignment::Center);
+        // Full-width flexible spacer used to push row content to one side.
+        let hspace = || Space::new().width(Length::Fill);
+
+        let title_row = Row::new()
+            .push(text::body("WiFi Hotspot"))
+            .push(hspace())
+            .spacing(8)
+            .align_y(Alignment::Center);
 
         let status_text = format!("Status: {}", self.status_message);
         let ssid_text = format!("SSID: {}", self.config.ssid);
 
-        let info_section = column![
-            text::body(status_text),
-            text::caption(ssid_text),
-        ]
-        .spacing(2);
+        let info_section = Column::new()
+            .push(text::body(status_text))
+            .push(text::caption(ssid_text))
+            .spacing(2);
 
         // Connected clients section
-        let mut clients_col = column![text::caption("Connected clients:")].spacing(2);
+        let mut clients_col = Column::new()
+            .push(text::caption("Connected clients:"))
+            .spacing(2);
         if self.connected_clients.is_empty() {
             clients_col = clients_col.push(text::caption("  (none)"));
         } else {
@@ -361,48 +366,46 @@ impl HotspotApplet {
                 .into()
         };
 
-        let toggle_row = row![
-            text::body(toggle_label),
-            horizontal_space(),
-            toggle_btn,
-        ]
-        .spacing(8)
-        .align_y(Alignment::Center);
+        let toggle_row = Row::new()
+            .push(text::body(toggle_label))
+            .push(hspace())
+            .push(toggle_btn)
+            .spacing(8)
+            .align_y(Alignment::Center);
 
-        let settings_row = row![
-            horizontal_space(),
-            widget::button::standard("Settings...").on_press(Message::OpenSettings),
-        ]
-        .spacing(8)
-        .align_y(Alignment::Center);
+        let settings_row = Row::new()
+            .push(hspace())
+            .push(widget::button::standard("Settings...").on_press(Message::OpenSettings))
+            .spacing(8)
+            .align_y(Alignment::Center);
 
         let divider = || {
-            container(Space::new(Length::Fill, Length::Fixed(1.0))).style(
-                |theme: &cosmic::Theme| {
+            container(Space::new().width(Length::Fill).height(Length::Fixed(1.0))).class(
+                cosmic::style::iced::Container::custom(|theme: &cosmic::Theme| {
                     let cosmic = theme.cosmic();
-                    container::Style {
+                    cosmic::iced::widget::container::Style {
                         background: Some(cosmic::iced::Background::Color(
                             Color::from(cosmic.palette.neutral_5),
                         )),
                         ..Default::default()
                     }
-                },
+                }),
             )
         };
 
-        column![
-            title_row,
-            divider(),
-            info_section,
-            divider(),
-            clients_col,
-            divider(),
-            toggle_row,
-            divider(),
-            settings_row,
-        ]
-        .spacing(8)
-        .padding(12)
+        Column::new()
+            .push(title_row)
+            .push(divider())
+            .push(info_section)
+            .push(divider())
+            .push(clients_col)
+            .push(divider())
+            .push(toggle_row)
+            .push(divider())
+            .push(settings_row)
+            .spacing(8)
+            .padding(12)
+            .into()
     }
 }
 
