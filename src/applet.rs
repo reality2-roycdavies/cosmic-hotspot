@@ -261,8 +261,11 @@ impl cosmic::Application for HotspotApplet {
                             let new_id = Id::unique();
                             state.popup = Some(new_id);
 
-                            let popup_width = 280u32;
-                            let popup_height = 300u32;
+                            // Width must be >= popup_container's fixed autosize width (360px);
+                            // a narrower surface than the committed buffer can trip an
+                            // xdg_surface unconfigured_buffer protocol error.
+                            let popup_width = 380u32;
+                            let popup_height = 320u32;
 
                             let mut popup_settings = state.core.applet.get_popup_settings(
                                 state.core.main_window_id().unwrap(),
